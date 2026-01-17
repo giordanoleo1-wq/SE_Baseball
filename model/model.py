@@ -153,6 +153,121 @@ class Model:
 
 
 
+#METODO ALTERNATIVO
+
+'''''''''''
+import networkx as nx
+from database.dao import DAO
+from model.team import Team
+
+class Model:
+    def _init_(self):
+        self.G = nx.Graph()
+        self.lista_teams = []
+        self.lista_salaries = []
+        self.lista_appearences= []
+        self.set_anni= set()
+
+        self.dic_team_id={}
+        self.dic_team_players= {}
+        self.dic_player_salary= {}
+
+        self.dic_team_tot_salary={}
+
+        self.lista_team_validi= []
+
+        self.componente_connessa= set()
+
+        self.stipendio_ottimo = 0
+        self.sequenza_ottima= []
+        self.pesi_ottimi= []
+
+
+    def load_all_data(self):
+        self.lista_teams = DAO.read_all_teams()
+        self.lista_salaries = DAO.read_all_salaries()
+        self.lista_appearences = DAO.read_all_appearences()
+
+
+    def lista_anni(self):
+        self.load_all_data()
+        self.set_anni.clear()
+
+        for t in self.lista_teams:
+            self.set_anni.add(t.year)
+        return sorted(self.set_anni)
+
+
+
+    def crea_grafo(self, anno_soglia):
+        self.load_all_data()
+        self.G = nx.Graph()
+        self.lista_team_validi= []
+
+        self.dic_team_id.clear()
+        self.dic_team_players.clear()
+        self.dic_player_salary.clear()
+        self.dic_team_tot_salary.clear()
+
+
+
+        for t in self.lista_teams:
+            if t.year == anno_soglia:
+                self.dic_team_id[t.id] = t
+                self.dic_team_players[t.id]= set()
+
+                self.lista_team_validi.append(t)
+
+        for s in self.lista_salaries:
+            if s.year == anno_soglia:
+                self.dic_player_salary[s.player_id] = s.salary
+
+        for a in self.lista_appearences:
+           if a.year == anno_soglia:
+                if a.team_id in self.dic_team_players:
+                    self.dic_team_players[a.team_id].add(a.player_id)
+
+        for team_id, players in self.dic_team_players.items():
+            total = 0
+            for p in players:
+                if p in self.dic_player_salary:
+                    total += self.dic_player_salary[p]
+                self.dic_team_tot_salary[team_id] = total
+
+
+        for t in self.lista_team_validi:
+            self.G.add_node(t)
+
+        for i in range(len(self.lista_team_validi)):
+            for j in range(i+1, len(self.lista_team_validi)):
+                team1= self.lista_team_validi[i]
+                team2= self.lista_team_validi[j]
+
+                peso= self.dic_team_tot_salary[team1.id] + self.dic_team_tot_salary[team2.id]
+                self.G.add_edge(team1, team2, weight=peso)
+
+
+
+    def gestione_dettagli(self, squadra):
+        squadre_adiacenti= self.G.neighbors(squadra)
+        risultato= []
+        for s in squadre_adiacenti:
+            peso= self.G[squadra][s]['weight']
+            risultato.append((s, peso))
+
+        risultato= sorted(risultato, key=lambda x: x[1], reverse=True)
+        return risultato
+
+    def trova_componente_connessa(self, start):
+        return nx.node_connected_component(self.G, start)
+    
+'''''''''
+
+
+
+
+
+
 
 
 
