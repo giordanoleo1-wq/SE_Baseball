@@ -75,7 +75,7 @@ class Model:
                 squadra2= self.lista_squadre_valide[j]
 
                 if not self.G.has_edge(squadra1, squadra2):
-                    peso= self.dic_team_salary[squadra1.id]+ self.dic_team_salary[squadra2.id]
+                    peso= self.dic_team_salary.get(squadra1.id, 0)+ self.dic_team_salary.get(squadra2.id, 0)
                     self.G.add_edge(squadra1, squadra2, weight=peso)
 
 
@@ -91,6 +91,7 @@ class Model:
 
 
     def get_dettagli(self, nodo):
+
         vicini= self.G.neighbors(nodo)
         result= []
         for v in vicini:
@@ -152,10 +153,57 @@ class Model:
 
 
 
+'''''''''''
+    def get_dizionario(self):
+        self.load_all_appearences()
+
+        G= nx.Graph()
+        dic_team_players = {}
+        dic_player_appearences = {}
+
+        for a in self.lista_appearences:
+            if a.team_code not in dic_team_players:
+                dic_team_players[a.team_code] = set()
+            dic_team_players[a.team_code].add(a.player_id)
+
+            if a.player_id not in dic_player_appearences:
+                dic_player_appearences[a.player_id] = {}
+            if a.team_code not in dic_player_appearences[a.player_id]:
+                dic_player_appearences[a.player_id][a.team_code] = set()
+            dic_player_appearences[a.player_id][a.team_code].add(a.year)
+
+        pesi = []
+
+
+        for s in self.lista_teams:
+            if s.team_code not in G.nodes:
+                G.add_node(s.team_code)
+
+        teams = list(dic_team_players.keys())
+        for i in range(len(teams)):
+            for j in range(i + 1, len(teams)):
+                k1 = teams[i]
+                k2 = teams[j]
+
+
+                giocatori_comuni = dic_team_players[k1] & dic_team_players[k2]
+
+                peso = 0
+                for g in giocatori_comuni:
+                    anni_k1 = dic_player_appearences[g][k1]
+                    anni_k2 = dic_player_appearences[g][k2]
+                    peso += min(len(anni_k1), len(anni_k2))
+
+                if peso > 0:
+                    G.add_edge(k1, k2, weight=peso)
+                    pesi.append(peso)
+
+        return G
+
 
 #METODO ALTERNATIVO
 
-'''''''''''
+
 import networkx as nx
 from database.dao import DAO
 from model.team import Team

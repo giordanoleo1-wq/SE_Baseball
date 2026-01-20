@@ -76,7 +76,7 @@ class Controller:
 
             peso= self._model.G[s1][s2]['weight']
 
-            self._view.txt_risultato.controls.append(ft.Text(f"{s1.team_code} ({s1.name}) --> {s2.team_code} ({s2.name}) (peso)"))
+            self._view.txt_risultato.controls.append(ft.Text(f"{s1.team_code} ({s1.name}) --> {s2.team_code} ({s2.name}) ({peso})"))
 
         self._view.txt_risultato.controls.append(ft.Text(f"Peso totale {costo_ottimo}"))
 

@@ -16,8 +16,9 @@ atl= model.dic_team_id[2777]
 #print(model.get_dettagli(atl))
 
 model.get_percorso_ottimo(atl, 3)
-print(model.sequenza_ottimo)
-print(model.costo_ottimo)
+#print(model.sequenza_ottimo)
+#print(model.costo_ottimo)
+print(model.get_dizionario())
 
-pesi= model.G.edges(data=True)
-print(pesi)
+
+
